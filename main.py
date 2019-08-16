@@ -111,7 +111,7 @@ class Model:
 		o = self.opinions
 		w = self.weights
 		theta = self.theta
-		o = theta*o + (1-theta)*np.array((np.dot(w,o[0,:]),np.dot(w,o[1,:])))
+		o = theta*o + (1-theta)*np.array((np.dot(w,m[0,:]),np.dot(w,m[1,:])))
 		self.opinions = o
 
 	def update_weights(self):	
