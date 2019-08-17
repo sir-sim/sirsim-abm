@@ -108,6 +108,7 @@ class Model:
 		self.messages = self.opinions
 
 	def update_opinions(self):
+		m = self.messages
 		o = self.opinions
 		w = self.weights
 		theta = self.theta
