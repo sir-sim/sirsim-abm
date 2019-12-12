@@ -6,7 +6,12 @@ import pandas as pd
 class Model:
 	def __init__(self, time_steps, theta, model_name):
 		# model_name should be 'scientists', 'lobbyists'
-		
+
+		# self.deliberation_type = 'social_welfare'
+		self.deliberation_type = 'voting'		
+		if (self.deliberation_type != 'social_welfare' and self.deliberation_type != 'voting'):
+			raise ValueError("deliberation_type should be 'social_welfare', or 'voting')")	
+
 		if (model_name == 'scientists'):
 			# print('scientists run')
 			self.weights    = np.array([[0.0,0.4,0.0,0.0,0.0,0.4, 0.2,0.0,0.0,0.0], 
@@ -57,7 +62,7 @@ class Model:
 			raise ValueError("model_name must be either 'scientists', 'lobbyists'")	
 
 		self.agent_decision_cost		= 0.25 * np.ones((1,self.no_agents))  # C  cost of decision to each agent
-		self.agent_net_expected_benefit	= np.zeros((1,self.no_agents))  	  # I  individual impact vector (expected benefit - individual cost) for an agent 
+		self.IWF						= np.zeros((1,self.no_agents))  	  # I  individual impact function (expected benefit - individual cost) for an agent, self.agent_net_expected_benefit
 		self.agent_t_min				= -100. * np.ones((1,self.no_agents)) # apathy_min_threshold  min agent break even points
 		self.agent_t_max				=  100. * np.ones((1,self.no_agents)) # apathy_max_threshold  max agent break even points
 		self.agent_power				= np.ones((1,self.no_agents)) # WW influence of each agent on decision in agregation/voting
@@ -146,11 +151,44 @@ class Model:
 			w[row,:] = w[row,:]/row_sum
 		self.weights = w
 
+	def deliberate(self):
+		o_val 		= self.opinions[0,:]
+		o_prob 		= self.opinions[1,:]		
+		vote_sum	= 0 # Introduce earlier?
+		decision 	= 0 # Introduce earlier?
+		# Calculate individual welfare
+		self.IWF = o_val * o_prob - self.agent_decision_cost
+
+		if self.deliberation_type == 'social_welfare':
+			vote_sum = np.sum(self.agent_power * self.IWF) # check
+
+			if(vote_sum > 0):
+				decision = 1
+				print('Decided to act using social welfare functions')
+
+		elif self.deliberation_type == 'voting':
+			vote_vector = self.IWF
+			for i in range(len(self.IWF[0,:])):
+				if self.IWF[0,i] > 0:
+					vote_vector[0,i] = 1
+				else:
+					vote_vector[0,i] = 0
+
+			vote_sum = np.sum(self.agent_power * vote_vector) #check
+
+			if(vote_sum > self.no_agents/2):
+				decision = 1
+				print('Decided in a vote to act')
+
+		else:
+			print('Error deliberation_type must be social_welfare or voting')
+
 	def step(self):
 		self.store_data()
 		self.talk()				# generate_messages()
 		self.update_opinions()
 		self.judge_people()		# update_weights()
+		self.deliberate()
 		self.t += 1
 
 	def run(self):
