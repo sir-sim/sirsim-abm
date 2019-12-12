@@ -56,13 +56,13 @@ class Model:
 		else:
 			raise ValueError("model_name must be either 'scientists', 'lobbyists'")	
 
-		self.agent_decision_cost        = 0.25 * np.ones((1,self.no_agents))  # C  cost of decision to each agent
-		self.agent_net_expected_benefit = np.zeros((1,self.no_agents))  	  # I  individual impact vector (expected benefit - individual cost) for an agent 
-		self.agent_apathy_min_threshold	= -100. * np.ones((1,self.no_agents)) # T  agent break even points - bottom
-		self.agent_apathy_max_threshold	=  100. * np.ones((1,self.no_agents)) # T  agent break even points - top
-		self.agent_power                = np.ones((1,self.no_agents))  		  # WW influence of each agent on decision
+		self.agent_decision_cost		= 0.25 * np.ones((1,self.no_agents))  # C  cost of decision to each agent
+		self.agent_net_expected_benefit	= np.zeros((1,self.no_agents))  	  # I  individual impact vector (expected benefit - individual cost) for an agent 
+		self.agent_t_min				= -100. * np.ones((1,self.no_agents)) # apathy_min_threshold  min agent break even points
+		self.agent_t_max				=  100. * np.ones((1,self.no_agents)) # apathy_max_threshold  max agent break even points
+		self.agent_power				= np.ones((1,self.no_agents)) # WW influence of each agent on decision in agregation/voting
 		
-		self.aggregate_choice_measures  = np.ones((1,2)) # S aggregate voting/decision outcome [social welfare function SWF, voting V]
+		self.aggregate_choice_measures	= np.ones((1,2)) # S weighting vector for aggregation by voting/decision outcome [social welfare function SWF, voting V]
 		 				
 		self.theta_var = theta
 		# self.opinions   = np.random.rand(2,self.no_agents)
@@ -111,7 +111,7 @@ class Model:
 		# print("Expected Val %f, Val %f, Prob %f, %f" % (temp_exp_val,temp_val,temp_prob,temp_val*temp_prob))
 	
 
-	def generate_messages(self):
+	def talk(self):
 		# G(alpha * opinion + bias) assume G, alpha 1, bias 0 initially
 		self.messages = self.opinions
 
@@ -123,7 +123,7 @@ class Model:
 		o = theta*o + (1-theta)*np.array((np.dot(w,m[0,:]),np.dot(w,m[1,:])))
 		self.opinions = o
 
-	def update_weights(self):	
+	def judge_people(self):	
 		m_val 		= self.messages[0,:]
 		m_prob 		= self.messages[1,:]
 		o_val 		= self.opinions[0,:]
@@ -148,9 +148,9 @@ class Model:
 
 	def step(self):
 		self.store_data()
-		self.generate_messages()
+		self.talk()				# generate_messages()
 		self.update_opinions()
-		self.update_weights()
+		self.judge_people()		# update_weights()
 		self.t += 1
 
 	def run(self):
