@@ -7,11 +7,13 @@ class Model:
 	def __init__(self, time_steps, theta, model_name):
 		# model_name should be 'scientists', 'lobbyists'
 
+		# TODO: make deliberation type a parameter passed to the model
 		# self.deliberation_type = 'social_welfare'
 		self.deliberation_type = 'voting'		
 		if (self.deliberation_type != 'social_welfare' and self.deliberation_type != 'voting'):
-			raise ValueError("deliberation_type should be 'social_welfare', or 'voting')")	
+			raise ValueError("deliberation_type should be 'social_welfare', or 'voting')")
 
+		# TODO: ? Why is theta specified inside this loop? does it depend on model name? should it?
 		if (model_name == 'scientists'):
 			# print('scientists run')
 			self.weights    = np.array([[0.0,0.4,0.0,0.0,0.0,0.4, 0.2,0.0,0.0,0.0], 
@@ -61,6 +63,7 @@ class Model:
 		else:
 			raise ValueError("model_name must be either 'scientists', 'lobbyists'")	
 
+		self.decision 					= 0 # Introduce earlier?
 		self.agent_decision_cost		= 0.25 * np.ones((1,self.no_agents))  # C  cost of decision to each agent
 		self.IWF						= np.zeros((1,self.no_agents))  	  # I  individual impact function (expected benefit - individual cost) for an agent, self.agent_net_expected_benefit
 		self.agent_t_min				= -100. * np.ones((1,self.no_agents)) # apathy_min_threshold  min agent break even points
@@ -85,7 +88,7 @@ class Model:
 		self.run_data	= {'Time':[],'Agent':[], 'Alpha':[], 'Theta':[], 'Theta_Run':[],
 						   'Value':[],'Prob':[], 'Value_Msg':[],'Prob_Msg':[], 'Expected_Value':[]}
 
-		self.agg_data = {'Time':[], 'Theta_Run':[],
+		self.agg_data = {'Time':[], 'Theta_Run':[], 'Decision':[],
 						 'Total_Value':[],'Total_Prob':[],'Total_Expected_Value':[]}
 
 	def store_data(self):
@@ -110,6 +113,7 @@ class Model:
 			# print("  Agent e Val %f, Val %f, Prob %f, %f" % (self.run_data['Expected_Value'][-1], self.run_data['Value'][-1], self.run_data['Prob'][-1], self.run_data['Value'][-1] * self.run_data['Prob'][-1]))
 		self.agg_data['Time'].append(self.t)
 		self.agg_data['Theta_Run'].append(self.theta_var)
+		self.agg_data['Decision'].append(self.decision)
 		self.agg_data['Total_Value'].append(temp_val)
 		self.agg_data['Total_Prob'].append(temp_prob)
 		self.agg_data['Total_Expected_Value'].append(temp_exp_val)
@@ -155,7 +159,6 @@ class Model:
 		o_val 		= self.opinions[0,:]
 		o_prob 		= self.opinions[1,:]		
 		vote_sum	= 0 # Introduce earlier?
-		decision 	= 0 # Introduce earlier?
 		# Calculate individual welfare
 		self.IWF = o_val * o_prob - self.agent_decision_cost
 
@@ -163,8 +166,7 @@ class Model:
 			vote_sum = np.sum(self.agent_power * self.IWF) # check
 
 			if(vote_sum > 0):
-				decision = 1
-				print('Decided to act using social welfare functions')
+				self.decision = 1	
 
 		elif self.deliberation_type == 'voting':
 			vote_vector = self.IWF
@@ -177,8 +179,7 @@ class Model:
 			vote_sum = np.sum(self.agent_power * vote_vector) #check
 
 			if(vote_sum > self.no_agents/2):
-				decision = 1
-				print('Decided in a vote to act')
+				self.decision = 1
 
 		else:
 			print('Error deliberation_type must be social_welfare or voting')
