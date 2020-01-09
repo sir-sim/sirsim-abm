@@ -4,6 +4,30 @@ import numpy as np
 import pandas as pd
 
 class Model:
+    """Social cognition model simulates evolving opinions.
+
+    Attributes:
+        no_agents: Number of agents.
+        decision: Aggregate decision. Default is False. Changes to true 
+            when the group decides to act.            
+        theta: Each agent's weighting of its own opinion (theta) vs 
+            its weighting of the opinions of others (1-theta). Range 0-1.
+        weights: Each agents weighting of the relative influence of 
+            each other agent's opinion.	
+		agent_decision_cost: Cost of a decision to a given agent (C).
+		IWF: Individual welfare/impact function 
+		    (expected benefit - individual cost) for an agent 
+		    (was called I or agent_net_expected_benefit).
+		agent_t_min: Minimum agent break even point (was apathy_min_threshold).
+		agent_t_max: Maximum agent break even point (was apathy_max_threshold).
+		agent_power: Influence of each agent on decision in aggregation 
+		    (was WW).
+		aggregate_choice_measures: Weighting vector for aggregation by
+		    voting/decision outcome (S, social welfare function SWF, voting V).
+
+	http://google.github.io/styleguide/pyguide.html#381-docstrings	    
+    """
+
 	def __init__(self, time_steps, theta, model_name):
 		# model_name should be 'scientists', 'lobbyists'
 
@@ -64,13 +88,13 @@ class Model:
 			raise ValueError("model_name must be either 'scientists', 'lobbyists'")	
 
 		self.decision 					= 0 # Introduce earlier?
-		self.agent_decision_cost		= 0.25 * np.ones((1,self.no_agents))  # C  cost of decision to each agent
-		self.IWF						= np.zeros((1,self.no_agents))  	  # I  individual impact function (expected benefit - individual cost) for an agent, self.agent_net_expected_benefit
-		self.agent_t_min				= -100. * np.ones((1,self.no_agents)) # apathy_min_threshold  min agent break even points
-		self.agent_t_max				=  100. * np.ones((1,self.no_agents)) # apathy_max_threshold  max agent break even points
-		self.agent_power				= np.ones((1,self.no_agents)) # WW influence of each agent on decision in agregation/voting
+		self.agent_decision_cost		= 0.25 * np.ones((1,self.no_agents))
+		self.IWF						= np.zeros((1,self.no_agents))
+		self.agent_t_min				= -100. * np.ones((1,self.no_agents))
+		self.agent_t_max				=  100. * np.ones((1,self.no_agents))
+		self.agent_power				= np.ones((1,self.no_agents))
 		
-		self.aggregate_choice_measures	= np.ones((1,2)) # S weighting vector for aggregation by voting/decision outcome [social welfare function SWF, voting V]
+		self.aggregate_choice_measures	= np.ones((1,2))
 		 				
 		self.theta_var = theta
 		# self.opinions   = np.random.rand(2,self.no_agents)
